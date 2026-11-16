@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Circular Campus - share more, waste less, keep resources in circulation.">
+  <title>Circular Campus</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <a class="brand" href="#/home" aria-label="Circular Campus home"><span class="brand-mark" aria-hidden="true">↻</span><span>Circular<br><b>Campus</b></span></a>
+      <div class="demo-switcher"><label for="user-switcher">Demo identity</label><select id="user-switcher" aria-label="Switch demo student"></select></div>
+      <nav class="nav-links">
+        <a href="#/home" data-route="home"><span>⌂</span> Home</a><a href="#/resources" data-route="resources"><span>◈</span> Resource Hub</a><a href="#/borrowings" data-route="borrowings"><span>↔</span> Borrowings</a><a href="#/campaigns" data-route="campaigns"><span>♡</span> Donation Drives</a><a href="#/my-resources" data-route="my-resources"><span>▣</span> My Resources</a><a href="#/dashboard" data-route="dashboard"><span>◒</span> Impact Dashboard</a><a href="#/community" data-route="community"><span>♧</span> Community</a>
+      </nav>
+      <div class="sidebar-note"><span aria-hidden="true">✦</span><p><b>Small actions,</b><br>lasting impact.</p></div>
+    </aside>
+    <div class="page-wrap">
+      <header class="topbar"><button class="mobile-menu" id="mobile-menu" aria-label="Open navigation" aria-expanded="false">☰</button><div class="breadcrumbs" id="breadcrumbs">Campus overview</div><div class="top-actions"><span class="online-pill" id="connection-status"><i></i> Demo mode</span><button class="btn btn-primary btn-sm" id="share-resource-top">+ Share resource</button><button class="btn btn-outline btn-sm" id="account-button">Account</button><button class="icon-button" id="reset-data" title="Reset demo data" aria-label="Reset demo data">↺</button><div class="avatar" id="current-avatar" aria-hidden="true">AK</div></div></header>
+      <main id="main-content" tabindex="-1"></main>
+      <footer><span>© 2026 Circular Campus</span><span>Share More · Waste Less · Keep Resources in Circulation</span><button class="footer-link" id="backend-button">Connect Backend</button></footer>
+    </div>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div><div id="modal-root"></div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+import {supabase} from './supabase-client.js';
+const requireAuth=()=>{if(!supabase.isAuthenticated())throw new Error('Please sign in to continue.');return supabase.getUser()?.id};
+export const cloud={
+ isAvailable:()=>supabase.isConfigured(),
+ fetchResources:()=>supabase.get('/rest/v1/resources?select=*&order=created_at.desc'),
+ fetchResourceById:id=>supabase.get(`/rest/v1/resources?id=eq.${encodeURIComponent(id)}&select=*`),
+ fetchOwnResources:()=>supabase.get(`/rest/v1/resources?owner_id=eq.${encodeURIComponent(requireAuth())}&order=created_at.desc`),
+ createResource:input=>supabase.post('/rest/v1/resources',{...input,owner_id:requireAuth()}),
+ updateResource:(id,input)=>supabase.patch(`/rest/v1/resources?id=eq.${encodeURIComponent(id)}`,input),
+ updateResourceAvailability:(id,status)=>supabase.patch(`/rest/v1/resources?id=eq.${encodeURIComponent(id)}`,{availability_status:status}),
+ deleteResource:id=>supabase.delete(`/rest/v1/resources?id=eq.${encodeURIComponent(id)}`),
+ fetchBorrowingRequests:()=>supabase.get(`/rest/v1/borrowings?or=(owner_id.eq.${requireAuth()},borrower_id.eq.${requireAuth()})&select=*`),
+ fetchReceivedRequests:()=>supabase.get(`/rest/v1/borrowings?owner_id=eq.${encodeURIComponent(requireAuth())}&select=*`),
+ fetchSentRequests:()=>supabase.get(`/rest/v1/borrowings?borrower_id=eq.${encodeURIComponent(requireAuth())}&select=*`),
+ createBorrowingRequest:data=>supabase.post('/rest/v1/borrowings',{...data,borrower_id:requireAuth()}),
+ approveBorrowingRequest:id=>supabase.patch(`/rest/v1/borrowings?id=eq.${encodeURIComponent(id)}&owner_id=eq.${encodeURIComponent(requireAuth())}`,{status:'Borrowed',approval_date:new Date().toISOString(),borrow_date:new Date().toISOString()}),
+ rejectBorrowingRequest:id=>supabase.patch(`/rest/v1/borrowings?id=eq.${encodeURIComponent(id)}&owner_id=eq.${encodeURIComponent(requireAuth())}`,{status:'Rejected'}),
+ requestReturn:id=>supabase.patch(`/rest/v1/borrowings?id=eq.${encodeURIComponent(id)}&borrower_id=eq.${encodeURIComponent(requireAuth())}`,{status:'Return Requested'}),
+ confirmReturn:id=>supabase.patch(`/rest/v1/borrowings?id=eq.${encodeURIComponent(id)}&owner_id=eq.${encodeURIComponent(requireAuth())}`,{status:'Returned',actual_return_date:new Date().toISOString()}),
+ fetchCampaigns:()=>supabase.get('/rest/v1/campaigns?select=*&order=created_at.desc'),
+ fetchCampaignById:id=>supabase.get(`/rest/v1/campaigns?id=eq.${encodeURIComponent(id)}&select=*`),
+ createCampaign:input=>supabase.post('/rest/v1/campaigns',{...input,organizer_id:requireAuth()}),
+ updateCampaign:(id,input)=>supabase.patch(`/rest/v1/campaigns?id=eq.${encodeURIComponent(id)}&organizer_id=eq.${encodeURIComponent(requireAuth())}`,input),
+ joinCampaign:id=>supabase.post('/rest/v1/campaign_contributions',{campaign_id:id,contributor_id:requireAuth(),status:'Pledged'}),
+ contributeToCampaign:input=>supabase.post('/rest/v1/campaign_contributions',{...input,contributor_id:requireAuth()}),
+ fetchCampaignContributions:id=>supabase.get(`/rest/v1/campaign_contributions?campaign_id=eq.${encodeURIComponent(id)}&select=*`),
+ fetchLifecycleEvents:id=>supabase.get(`/rest/v1/lifecycle_events?resource_id=eq.${encodeURIComponent(id)}&select=*&order=timestamp.asc`),
+ fetchUserPoints:id=>supabase.get(`/rest/v1/points_transactions?user_id=eq.${encodeURIComponent(id)}&select=*&order=created_at.desc`),
+ fetchLeaderboard:()=>supabase.get('/rest/v1/profiles?select=id,display_name,department,academic_year'),
+ fetchSavedResourceIds:()=>supabase.get(`/rest/v1/saved_resources?user_id=eq.${encodeURIComponent(requireAuth())}&select=resource_id`),
+ saveResource:id=>supabase.post('/rest/v1/saved_resources',{user_id:requireAuth(),resource_id:id}),
+ unsaveResource:id=>supabase.delete(`/rest/v1/saved_resources?user_id=eq.${encodeURIComponent(requireAuth())}&resource_id=eq.${encodeURIComponent(id)}`)
+};

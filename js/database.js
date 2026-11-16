@@ -1,0 +1,3 @@
+import {STORAGE_KEY} from './constants.js';
+import {seed} from './seed.js';
+export const db={load(){try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw){const data=seed();this.save(data);return data}const data=JSON.parse(raw);if(data.version!==1)throw new Error('Unsupported data version');return data}catch(error){console.warn('Circular Campus data reset:',error);const data=seed();this.save(data);return data}},save(data){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data))}catch(error){console.error('Could not save demo data',error);throw error}},reset(){const data=seed();this.save(data);return data}};

@@ -1,0 +1,3 @@
+const icons={book:'▤',electronics:'⌁',stationery:'✎',sports:'⌁',clothing:'♧',dorm:'⌂',lab:'⚗',misc:'◈'};
+export const illustration=category=>icons[({ 'Academic Books':'book',Electronics:'electronics',Stationery:'stationery','Sports Equipment':'sports',Clothing:'clothing','Dorm Essentials':'dorm','Lab Equipment':'lab',Miscellaneous:'misc'})[category]||'misc'];
+export const logoSvg='<svg viewBox="0 0 80 80" aria-label="Circular Campus mark" role="img"><circle cx="40" cy="40" r="30" fill="none" stroke="#6A9B75" stroke-width="7"/><path d="M40 10v17l12-9M70 40H53l9 12M40 70V53l-12 9M10 40h17l-9-12" fill="none" stroke="#E9C46A" stroke-width="5"/></svg>';

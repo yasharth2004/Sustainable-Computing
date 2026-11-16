@@ -1,0 +1,20 @@
+const CONFIG_KEY='circular_campus_config';
+const SESSION_KEY='circular_campus_session';
+const safeUrl=url=>String(url||'').trim().replace(/\/+$/,'');
+const read=(key,storage=sessionStorage)=>{try{return JSON.parse(storage.getItem(key)||'null')}catch{return null}};
+const write=(key,value,storage=sessionStorage)=>{if(value==null)storage.removeItem(key);else storage.setItem(key,JSON.stringify(value))};
+const config=()=>read(CONFIG_KEY);
+const accessToken=()=>read(SESSION_KEY)?.access_token;
+const headers=(key=config()?.key)=>{if(!key)throw new Error('Supabase is not configured.');return{apikey:key,Authorization:`Bearer ${accessToken()||key}`,'Content-Type':'application/json',Prefer:'return=representation'}};
+async function request(path,options={},retried=false){let response=await fetch(`${safeUrl(config()?.url)}${path}`,{...options,headers:{...headers(),...(options.headers||{})}});if(response.status===401&&!retried&&read(SESSION_KEY)?.refresh_token){const refreshed=await supabase.refreshSession();if(refreshed)return request(path,options,true)}let body=null;try{body=await response.json()}catch{}if(!response.ok){const error=new Error(body?.message||body?.error_description||body?.error||`Supabase request failed (${response.status})`);error.status=response.status;throw error}return body}
+export const supabase={
+ setConfig(url,key){if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(safeUrl(url))||!String(key||'').trim())throw new Error('Enter a valid Supabase project URL and publishable key.');sessionStorage.setItem(CONFIG_KEY,JSON.stringify({url:safeUrl(url),key:String(key).trim()}))},
+ getConfig:config,clearConfig(){sessionStorage.removeItem(CONFIG_KEY);this.clearSession()},isConfigured:()=>Boolean(config()?.url&&config()?.key),
+ async testConnection(url,key){const base=safeUrl(url);if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(base)||!key)throw new Error('Enter a valid Supabase project URL and publishable key.');const response=await fetch(`${base}/auth/v1/settings`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});if(!response.ok)throw new Error('Connection failed. Check the URL and publishable key.');return true},
+ storeSession:data=>write(SESSION_KEY,data),getSession:()=>read(SESSION_KEY),clearSession:()=>sessionStorage.removeItem(SESSION_KEY),isAuthenticated:()=>Boolean(accessToken()),getUser:()=>read(SESSION_KEY)?.user||null,
+ async refreshSession(){const session=read(SESSION_KEY);if(!session?.refresh_token||!config())return null;const response=await fetch(`${safeUrl(config().url)}/auth/v1/token?grant_type=refresh_token`,{method:'POST',headers:{apikey:config().key,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:session.refresh_token})});if(!response.ok){this.clearSession();return null}const next=await response.json();this.storeSession(next);return next},
+ async signIn(email,password){const response=await fetch(`${safeUrl(config()?.url)}/auth/v1/token?grant_type=password`,{method:'POST',headers:{apikey:config()?.key,'Content-Type':'application/json'},body:JSON.stringify({email,password})});let body=null;try{body=await response.json()}catch{}if(!response.ok)throw new Error('Login failed. Check your email and password.');this.storeSession(body);return body},
+ async signUp({email,password,display_name,department,academic_year}){const response=await fetch(`${safeUrl(config()?.url)}/auth/v1/signup`,{method:'POST',headers:{apikey:config()?.key,'Content-Type':'application/json'},body:JSON.stringify({email,password,data:{display_name,department,academic_year}})});let body=null;try{body=await response.json()}catch{}if(!response.ok)throw new Error('Registration failed. Check the details and try again.');if(body?.access_token)this.storeSession(body);return body},
+ async signOut(){if(this.isAuthenticated())try{await request('/auth/v1/logout',{method:'POST'})}finally{this.clearSession()}else this.clearSession()},
+ get:path=>request(path),post:(path,body)=>request(path,{method:'POST',body:JSON.stringify(body)}),patch:(path,body)=>request(path,{method:'PATCH',body:JSON.stringify(body)}),delete:path=>request(path,{method:'DELETE'})
+};
